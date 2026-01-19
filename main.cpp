@@ -225,11 +225,11 @@ void carRental()
 
         cout << "\nThank you for using our service!\n";
     }
+}
 
-    // -------------------- Main Function --------------------
-    int main()
-    {
-        carRental();
-        return 0;
-    }
+// -------------------- Main Function --------------------
+int main()
+{
+    carRental();
+    return 0;
 }
