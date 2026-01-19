@@ -1,17 +1,27 @@
 #include <iostream>
 #include <string>
-
+#include <limits>
+#include <cctype>
+#include <algorithm>
 using namespace std;
 
-/*
-    Function Name : carRental
-    Type          : void function
-    Purpose       : Simulates a car rental booking system
-*/
+bool isValidName(const string &name)
+{
+    if (name.empty())
+        return false;
+    for (char c : name)
+    {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (!isalpha(uc) && !isspace(uc))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void carRental()
 {
-
-    // -------------------- Variable Declaration --------------------
     int numPeople;
     int paymentMethod;
     int rentalHours;
@@ -25,50 +35,52 @@ void carRental()
     const int pricePerHour = 800;
     const int lateFeePerHour = 300;
 
-    // Car models categorized by seating capacity
     string carModels[3][3] = {
-        {"Toyota Yaris", "Honda Civic", "Hyundai Accent"},    // 1–3 people
-        {"Toyota Corolla", "Honda City", "Nissan Sentra"},    // 4 people
-        {"Toyota Hiace", "Ford Transit", "Mercedes Sprinter"} // 5+ people
-    };
+        {"Toyota Yaris", "Honda Civic", "Hyundai Accent"},
+        {"Toyota Corolla", "Honda City", "Nissan Sentra"},
+        {"Toyota Hiace", "Ford Transit", "Mercedes Sprinter"}};
 
     cout << "========================================\n";
-    cout << "   WELCOME TO CAR RENTAL BOOKING SYSTEM  \n";
+    cout << "   WELCOME TO ADWA CAR RENTAL BOOKING SYSTEM  \n";
     cout << "========================================\n\n";
-
-    // -------------------- Input Section --------------------
 
     // Number of people
     cout << "Enter number of people: ";
-    cin >> numPeople;
-    while (numPeople <= 0)
+    while (!(cin >> numPeople) || numPeople <= 0)
     {
-        cout << "Invalid! Enter a positive number: ";
-        cin >> numPeople;
+        cout << "Invalid input! Please enter a positive number: ";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // clear buffer
 
-    cin.ignore();
+    // Name validation
     cout << "Enter your full name: ";
     getline(cin, name);
+    while (!isValidName(name))
+    {
+        cout << "Invalid! Name must contain only letters and spaces: ";
+        getline(cin, name);
+    }
 
     // Fayda ID validation
     cout << "Enter your 15-digit Fayda ID: ";
     cin >> faydaID;
-    while (faydaID.length() != 15)
+    while (faydaID.length() != 15 ||
+           !all_of(faydaID.begin(), faydaID.end(), ::isdigit))
     {
-        cout << "Invalid! Fayda ID must be exactly 15 digits: ";
+        cout << "Invalid! Fayda ID must be exactly 15 digits (numbers only): ";
         cin >> faydaID;
     }
 
-    // Payment method validation
+    // Payment method
     cout << "Choose payment method (1 = Cash, 2 = Bank): ";
-    cin >> paymentMethod;
-    while (paymentMethod != 1 && paymentMethod != 2)
+    while (!(cin >> paymentMethod) || (paymentMethod != 1 && paymentMethod != 2))
     {
         cout << "Invalid! Choose 1 (Cash) or 2 (Bank): ";
-        cin >> paymentMethod;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-
     if (paymentMethod == 2)
     {
         cout << "Bank Account Number: 10005676848\n";
@@ -76,57 +88,41 @@ void carRental()
 
     // Rental hours
     cout << "Enter number of rental hours: ";
-    cin >> rentalHours;
-    while (rentalHours <= 0)
+    while (!(cin >> rentalHours) || rentalHours <= 0)
     {
         cout << "Invalid! Hours must be positive: ";
-        cin >> rentalHours;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    // -------------------- Car Selection --------------------
+    // Car selection
     cout << "\nAvailable Cars:\n";
-
-    int category;
-    if (numPeople <= 3)
-    {
-        category = 0;
-    }
-    else if (numPeople == 4)
-    {
-        category = 1;
-    }
-    else
-    {
-        category = 2;
-    }
-
+    int category = (numPeople <= 3) ? 0 : (numPeople == 4 ? 1 : 2);
     for (int i = 0; i < 3; i++)
     {
         cout << i + 1 << ". " << carModels[category][i] << endl;
     }
 
     cout << "Choose a car (1-3): ";
-    cin >> carChoice;
-    while (carChoice < 1 || carChoice > 3)
+    while (!(cin >> carChoice) || carChoice < 1 || carChoice > 3)
     {
         cout << "Invalid choice! Choose 1-3: ";
-        cin >> carChoice;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
-    // -------------------- Payment Calculation --------------------
+    // Payment calculation
     totalAmount = rentalHours * pricePerHour;
-
     cout << "\nDid you return the car late? (Enter late hours, 0 if none): ";
-    cin >> lateHours;
-    while (lateHours < 0)
+    while (!(cin >> lateHours) || lateHours < 0)
     {
         cout << "Invalid! Late hours cannot be negative: ";
-        cin >> lateHours;
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
-
     totalAmount += lateHours * lateFeePerHour;
 
-    // -------------------- Output Section --------------------
+    // Output
     cout << "\n========= RENTAL SUMMARY =========\n";
     cout << "Renter Name      : " << name << endl;
     cout << "Fayda ID         : " << faydaID << endl;
@@ -145,7 +141,6 @@ void carRental()
     cout << "\nThank you for using our service!\n";
 }
 
-// -------------------- Main Function --------------------
 int main()
 {
     carRental();
