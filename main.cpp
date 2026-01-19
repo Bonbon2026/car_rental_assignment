@@ -31,6 +31,7 @@ void carRental()
 
     string name;
     string faydaID;
+    string paymentMethodStr;
 
     const int pricePerHour = 800;
     const int lateFeePerHour = 300;
@@ -64,7 +65,7 @@ void carRental()
     }
 
     // Fayda ID validation
-    cout << "Enter your 15-digit Fayda ID: ";
+    cout << "Enter your 16-digit Fayda ID: ";
     cin >> faydaID;
     while (faydaID.length() != 15 ||
            !all_of(faydaID.begin(), faydaID.end(), ::isdigit))
@@ -83,7 +84,11 @@ void carRental()
     }
     if (paymentMethod == 2)
     {
-        cout << "Bank Account Number: 10005676848\n";
+        for (int i = 0; i < 7; i++)
+        {
+            cout << (i + 1) << ". " << banks[i] << "\n";
+        }
+        cout << "Choose (1-7): ";
     }
 
     // Rental hours
