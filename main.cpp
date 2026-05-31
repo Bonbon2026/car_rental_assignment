@@ -2,234 +2,382 @@
 #include <string>
 #include <cctype>
 #include <algorithm>
-#include <limits>
-
 using namespace std;
-bool isValidName(string &name)
+
+struct Car
 {
-    if (name.empty())
+    string model;
+    string category;
+    int maxPassengers;
+    double hourlyRate;
+    double dailyRate;
+    bool available;
+};
+
+// Ethiopian banks
+string banks[7] = {
+    "Commercial Bank of Ethiopia",
+    "Dashen Bank",
+    "Awash Bank",
+    "Abyssinia Bank",
+    "NIB International Bank",
+    "Wegagen Bank",
+    "United Bank"};
+
+// Ethiopian cities
+string ethiopianCities[10] = {
+    "Addis Ababa",
+    "Dire Dawa",
+    "Hawassa",
+    "Mekelle",
+    "Bahir Dar",
+    "Jimma",
+    "Adama (Nazret)",
+    "Dessie",
+    "Adwa",
+    "Gondar"};
+
+// Validate 16-digit FAN (spaces allowed)
+bool isValidFAN(string id)
+{
+    // Remove spaces
+    id.erase(remove(id.begin(), id.end(), ' '), id.end());
+    if (id.length() != 16)
         return false;
-    for (char c : name)
+    for (int i = 0; i < 16; i++)
     {
-        unsigned char uc = static_cast<unsigned char>(c);
-        if (!isalpha(uc) && !isspace(uc))
-        {
+        if (!isdigit(id[i]))
             return false;
-        }
     }
     return true;
 }
-/*
-    Function Name : carRental
-    Type          : void function
-    Purpose       : Simulates a car rental booking system
-*/
-void carRental()
+
+// Mask FAN: show only last 4 digits
+string maskFAN(string fan)
 {
+    // Remove spaces first
+    fan.erase(remove(fan.begin(), fan.end(), ' '), fan.end());
+    if (fan.length() != 16)
+        return "INVALID";
+    return "************" + fan.substr(12, 4);
+}
 
-    // -------------------- Variable Declaration --------------------
-    int numPeople;
-    int paymentMethod;
-    int rentalHours;
-    int carChoice;
-    int lateHours;
-    double totalAmount;
+bool isValidEmail(string email)
+{
+    size_t at = email.find('@');
+    size_t dot = email.rfind('.');
+    return at != string::npos && dot != string::npos && at < dot && at > 0 && dot > at + 1;
+}
 
-    string name;
-    string faydaID;
-    string paymentMethodStr;
-
-    const int pricePerHour = 800;
-    const int lateFeePerHour = 300;
-
-    // Car models categorized by seating capacity
-    string carModels[3][3] = {
-        {"Toyota Yaris", "suzuki", "vitz"},             // 1–3 people
-        {"Toyota Corolla", "atoz", "Nissan Sentra"},    // 4 people
-        {"jetour", "Ford Transit", "Mercedes Sprinter"} // 5+ people
-    };
-
-    cout << "========================================\n";
-    cout << "   WELCOME TO ADWA CAR RENTAL BOOKING SYSTEM  \n";
-    cout << "========================================\n\n";
-
-    // -------------------- Input Section --------------------
-
-    // Number of people
-    cout << "Enter number of people: ";
-    while (!(cin >> numPeople) || numPeople <= 0)
+string toLower(string s)
+{
+    for (int i = 0; i < s.length(); i++)
     {
-        cout << "Invalid input! Please enter a positive number: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        s[i] = tolower(s[i]);
     }
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // clear buffer
-                                                         // name validation
-    cout << "Enter your full name: ";
+    return s;
+}
+
+int main()
+{
+    cout << "===============================\n";
+    cout << "WELCOME TO ADWA CAR RENTAL SYSTEM\n";
+    cout << "===============================\n\n";
+
+    const int CAR_COUNT = 6;
+    Car cars[CAR_COUNT] = {
+        {"Toyota Yaris", "Hatchback", 5, 120, 900, true},
+        {"Toyota Corolla", "Sedan", 5, 180, 1200, true},
+        {"Hyundai Tucson", "SUV", 7, 250, 1800, true},
+        {"Mitsubishi Pajero", "SUV", 7, 350, 2500, true},
+        {"Toyota Hiace", "Van", 14, 500, 3500, true},
+        {"Toyota Hilux", "Pickup", 5, 300, 2000, true}};
+
+    int passengers;
+    cout << "How many passengers (including driver)? ";
+    cin >> passengers;
+    cin.ignore();
+    while (passengers <= 0)
+    {
+        cout << "Invalid! Enter again: ";
+        cin >> passengers;
+    }
+    cin.ignore();
+    int choices[CAR_COUNT];
+    int choiceCount = 0;
+    cout << "\nAvailable cars for " << passengers << " people:\n";
+    cout << "----------------------------------------\n";
+    for (int i = 0; i < CAR_COUNT; i++)
+    {
+        if (cars[i].available && cars[i].maxPassengers >= passengers)
+        {
+            cout << (choiceCount + 1) << ". " << cars[i].category
+                 << " - " << cars[i].model
+                 << " (" << cars[i].maxPassengers << " seats)\n";
+            choices[choiceCount] = i;
+            choiceCount++;
+        }
+    }
+    if (choiceCount == 0)
+    {
+        cout << "No cars available.\n";
+        return 0;
+    }
+    int userChoice;
+    cout << "\nChoose a car (1-" << choiceCount << "): ";
+    cin >> userChoice;
+    cin.ignore();
+    while (userChoice < 1 || userChoice > choiceCount)
+    {
+        cout << "Invalid! Choose again: ";
+        cin >> userChoice;
+    }
+    cin.ignore();
+    Car *chosenCar = &cars[choices[userChoice - 1]];
+
+    cout << "\n--- RENTAL OPTIONS ---\n";
+    cout << "1. Hourly Rental (min 4 hours)\n";
+    cout << "2. Daily Rental (min 1 day)\n";
+    cout << "Choose (1 or 2): ";
+    int rentalType;
+    cin >> rentalType;
+    cin.ignore();
+    while (rentalType != 1 && rentalType != 2)
+    {
+        cout << "Invalid choice! Enter 1 or 2: ";
+        cin >> rentalType;
+    }
+    cin.ignore();
+
+    int quantity;
+    double baseCost = 0;
+    string unit;
+    if (rentalType == 1)
+    {
+        cout << "Enter rental duration in hours (min 4): ";
+        cin >> quantity;
+        cin.ignore();
+        while (quantity < 4)
+        {
+            cout << "Minimum 4 hours required. Enter again: ";
+            cin >> quantity;
+        }
+        cin.ignore();
+        baseCost = chosenCar->hourlyRate * quantity;
+        unit = "hour(s)";
+    }
+    else
+    {
+        cout << "Enter rental duration in days (min 1): ";
+        cin >> quantity;
+        cin.ignore();
+        while (quantity < 1)
+        {
+            cout << "Minimum 1 day required. Enter again: ";
+            cin >> quantity;
+        }
+        cin.ignore();
+        baseCost = chosenCar->dailyRate * quantity;
+        unit = "day(s)";
+    }
+
+    cout << "\n--- LATE RETURN POLICY ---\n";
+    if (rentalType == 1)
+    {
+        cout << "• 20% extra per additional hour\n";
+    }
+    else
+    {
+        cout << "• 50% extra per additional day\n";
+    }
+    cout << "• Full damage protection available for 10% extra fee\n";
+    cout << "Add damage protection? (Yes or No): ";
+    string damageInput;
+    getline(cin, damageInput);
+    bool addInsurance = (toLower(damageInput) == "yes");
+    double insuranceCost = addInsurance ? baseCost * 0.10 : 0;
+    double totalBeforeDiscount = baseCost + insuranceCost;
+
+    double discount = 0;
+    if (rentalType == 2)
+    {
+        if (quantity >= 30)
+        {
+            discount = baseCost * 0.20;
+            cout << "\n 20% monthly discount applied!\n";
+        }
+        else if (quantity >= 7)
+        {
+            discount = baseCost * 0.10;
+            cout << "\n 10% weekly discount applied!\n";
+        }
+    }
+    double finalTotal = totalBeforeDiscount - discount;
+
+    // FAN INPUT WITH HINT & SPACE TOLERANCE
+    string name, fan, email;
+    cout << "\n--- CUSTOMER INFORMATION ---\n";
+    cout << "Full name: ";
     getline(cin, name);
-    while (!isValidName(name))
+
+    cout << "National ID (FAN - 16 digits)\n";
+    cout << "Enter as: XXXX XXXX XXXX XXXX\n"; // Helpful hint
+    getline(cin, fan);
+
+    // Validate FAN (allow spaces)
+    string fanClean = fan;
+    fanClean.erase(remove(fanClean.begin(), fanClean.end(), ' '), fanClean.end());
+    while (!isValidFAN(fan))
     {
-        cout << "invaild! the name must only contain letters and spaces: ";
-        getline(cin, name);
+        cout << "Invalid FAN! Please enter 16 digits (spaces allowed): ";
+        getline(cin, fan);
+        fanClean = fan;
+        fanClean.erase(remove(fanClean.begin(), fanClean.end(), ' '), fanClean.end());
     }
 
-    // Fayda ID validation
-    cout << "Enter your 16-digit Fayda ID: ";
-    cin >> faydaID;
-    while (
-        faydaID.length() != 16 ||
-
-        !all_of(faydaID.begin(), faydaID.end(),
-                [](char c)
-                { return isdigit(static_cast<unsigned char>(c)); }))
+    cout << "Email address: ";
+    getline(cin, email);
+    while (!isValidEmail(email))
     {
-
-        cout << "Invalid! Fayda ID must be exactly 16 digits (numbers only): ";
-        cin >> faydaID;
+        cout << "Valid email: ";
+        getline(cin, email);
     }
 
-    // Payment method validation
-    const string banks[7] = {
-        "Commercial Bank of Ethiopia",
-        "Dashen Bank",
-        "Awash Bank",
-        "Abyssinia Bank",
-        "NIB International Bank",
-        "Wegagen Bank",
-        "United Bank"};
+    string phoneDigits;
 
+    while (true)
+    {
+        cout << "Enter phone number\n";
+        cout << "+251";
+        getline(cin, phoneDigits);
+
+        phoneDigits.erase(remove_if(phoneDigits.begin(), phoneDigits.end(), ::isspace), phoneDigits.end());
+
+        bool valid = true;
+
+        if (phoneDigits.length() != 9)
+        {
+            cout << "\nInvalid phone number! Must be 9 digits.\n";
+            valid = false;
+        }
+        else if (phoneDigits[0] != '9' && phoneDigits[0] != '7')
+        {
+            cout << "\nPhone number must start with 9 or 7.\n";
+            valid = false;
+        }
+        else
+        {
+            for (char c : phoneDigits)
+            {
+                if (!isdigit(c))
+                {
+                    cout << "\nDigits only!\n";
+                    valid = false;
+                    break;
+                }
+            }
+        }
+
+        if (valid)
+            break;
+    }
+
+    string fullPhone = "+251" + phoneDigits;
+    string provider = (phoneDigits[0] == '9') ? "tele" : "bank";
+
+    cout << "\n--- SELECT YOUR CITY ---\n";
+    for (int i = 0; i < 10; i++)
+    {
+        cout << (i + 1) << ". " << ethiopianCities[i] << "\n";
+    }
+    cout << "Choose (1-10): ";
+    int cityChoice;
+    cin >> cityChoice;
+    cin.ignore();
+    while (cityChoice < 1 || cityChoice > 10)
+    {
+        cout << "Invalid city! Choose again: ";
+        cin >> cityChoice;
+    }
+    cin.ignore();
+    string selectedCity = ethiopianCities[cityChoice - 1];
     cout << "\n--- PAYMENT OPTIONS ---\n";
-    if (true)
+    if (provider == "tele")
     {
         cout << "1. TeleBirr\n";
         for (int i = 0; i < 7; i++)
-        {
             cout << (i + 2) << ". " << banks[i] << "\n";
-        }
         cout << "Choose (1-8): ";
     }
     else
     {
         for (int i = 0; i < 7; i++)
-        {
             cout << (i + 1) << ". " << banks[i] << "\n";
-        }
         cout << "Choose (1-7): ";
     }
-
     int payChoice;
     cin >> payChoice;
-
-    if (true)
+    cin.ignore();
+    string payment;
+    if (provider == "tele")
     {
         if (payChoice == 1)
-        {
-            paymentMethodStr = "TeleBirr";
-        }
+            payment = "TeleBirr";
         else if (payChoice >= 2 && payChoice <= 8)
+            payment = banks[payChoice - 2];
+        while (payChoice < 1 || payChoice > 8)
         {
-            paymentMethodStr = banks[payChoice - 2];
+            cout << "Invalid! Choose again: ";
+            cin >> payChoice;
         }
-        else
-        {
-            cout << "Invalid choice! Using TeleBirr.\n";
-            paymentMethodStr = "TeleBirr";
-        }
+        cin.ignore();
     }
     else
     {
-        if (payChoice >= 1 && payChoice <= 7)
+        while (payChoice < 1 || payChoice > 7)
         {
-            paymentMethodStr = banks[payChoice - 1];
+            cout << "Invalid! Choose again: ";
+            cin >> payChoice;
         }
-        else
-        {
-            cout << "Invalid choice! Using Commercial Bank of Ethiopia.\n";
-            paymentMethodStr = banks[0];
-        }
+        cin.ignore();
     }
 
-    // Rental hours
-    cout << "Enter number of rental hours: ";
-    while (!(cin >> rentalHours) || rentalHours <= 0)
+    cout << "\nTOTAL COST: " << finalTotal << " ETB\n";
+    cout << "Confirm rental? (Yes or No): ";
+    string confirm;
+    getline(cin, confirm);
+    while (toLower(confirm) != "yes" && toLower(confirm) != "no")
     {
-        cout << "Invalid! Hours must be positive: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Please enter Yes or No: ";
+        getline(cin, confirm);
     }
 
-    // Car selection
-    cout << "\nAvailable Cars:\n";
-    int category = (numPeople <= 3) ? 0 : (numPeople == 4 ? 1 : 2);
-    for (int i = 0; i < 3; i++)
+    if (toLower(confirm) == "no")
     {
-        cout << i + 1 << ". " << carModels[category][i] << endl;
+        cout << "Rental cancelled.\n";
+        return 0;
     }
+    // MASKED FAN IN RECEIPT
+    string maskedFAN = maskFAN(fan);
 
-    cout << "Choose a car (1-3): ";
-    while (!(cin >> carChoice) || carChoice < 1 || carChoice > 3)
-    {
-        cout << "Invalid choice! Choose 1-3: ";
-        cin.clear();
+    cout << "\n===============================\n";
+    cout << "   BOOKING CONFIRMED\n";
+    cout << "   Adwa Car Rental System\n";
+    cout << "===============================\n";
+    cout << "Name: " << name << "\n";
+    cout << "FAN: " << maskedFAN << "\n"; //  Only last 4 digits shown
+    cout << "Email: " << email << "\n";
+    cout << "Phone: " << fullPhone << "\n";
+    cout << "City: " << selectedCity << "\n";
+    cout << "Car: " << chosenCar->model << "\n";
+    cout << "Rental: " << quantity << " " << unit << "\n";
+    cout << "Damage Protection: " << (addInsurance ? "Yes" : "No") << "\n";
+    cout << "Payment: " << payment << "\n";
+    cout << "Total: " << finalTotal << " ETB\n";
+    cout << "\n You'll be contacted via email for vehicle delivery details.\n";
+    cout << " Late returns incur extra fees as per policy.\n";
+    cout << "Thank you! Drive safely in Ethiopia!\n";
 
-        // -------------------- Car Selection --------------------
-        cout << "\nAvailable Cars:\n";
-
-        int category;
-        if (numPeople <= 3)
-            category = 0;
-        else if (numPeople == 4)
-            category = 1;
-        else
-            category = 2;
-
-        for (int i = 0; i < 3; i++)
-        {
-            cout << i + 1 << ". " << carModels[category][i] << endl;
-        }
-
-        cout << "Choose a car (1-3): ";
-        cin >> carChoice;
-        while (carChoice < 1 || carChoice > 3)
-        {
-            cout << "Invalid choice! Choose 1-3: ";
-            cin >> carChoice;
-        }
-
-        // -------------------- Payment Calculation --------------------
-        totalAmount = rentalHours * pricePerHour;
-        cout << "\nDid you return the car late? (Enter late hours, 0 if none): ";
-        while (!(cin >> lateHours) || lateHours < 0)
-        {
-            cout << "Invalid! Late hours cannot be negative: ";
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        }
-        totalAmount += lateHours * lateFeePerHour;
-
-        // Output
-        cout << "\n========= RENTAL SUMMARY =========\n";
-        cout << "Renter Name      : " << name << endl;
-        cout << "Fayda ID         : " << faydaID << endl;
-        cout << "People           : " << numPeople << endl;
-        cout << "Selected Car     : " << carModels[category][carChoice - 1] << endl;
-        cout << "Rental Hours     : " << rentalHours << endl;
-        cout << "Rate per Hour    : " << pricePerHour << " birr\n";
-        cout << "Late Fee         : " << lateHours * lateFeePerHour << " birr\n";
-        cout << "TOTAL PAYMENT    : " << totalAmount << " birr\n";
-
-        cout << "\nPolicies:\n";
-        cout << "- Damage cost is paid by renter\n";
-        cout << "- Late return fee: " << lateFeePerHour << " birr per hour\n";
-        cout << "- Bring Fayda ID and receipt if paid via bank\n";
-
-        cout << "\nThank you for using our service!\n";
-    }
-}
-
-// -------------------- Main Function --------------------
-int main()
-{
-    carRental();
+    chosenCar->available = false;
     return 0;
 }
